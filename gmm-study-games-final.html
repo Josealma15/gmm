@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GMM Study Games</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .app { min-height: 100vh; display: flex; flex-direction: column; }
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem 2rem;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .logo h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #fff 0%, #a8edea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .main { flex: 1; padding: 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .hero h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 0%, #a8edea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p { font-size: 1.2rem; opacity: 0.8; }
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        .game-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        .game-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        .game-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+        .game-card h3 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .game-card p { opacity: 0.7; font-size: 0.9rem; }
+        .back-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(245, 87, 108, 0.4);
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-label { opacity: 0.7; margin-top: 0.5rem; }
+        
+        /* Flashcard styles */
+        .flashcard-view { max-width: 800px; margin: 0 auto; }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+        .card-counter {
+            text-align: center;
+            font-size: 1.2rem;
+            opacity: 0.7;
+            margin-bottom: 1rem;
+        }
+        .module-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 2rem;
+        }
+        .flashcard-container {
+            height: 450px;
+            perspective: 1000px;
+            cursor: pointer;
+            margin-bottom: 2rem;
+        }
+        .flashcard {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flashcard.flipped { transform: rotateY(180deg); }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+        }
+        .card-back { transform: rotateY(180deg); }
+        .card-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            opacity: 0.5;
+            margin-bottom: 1.5rem;
+            letter-spacing: 2px;
+        }
+        .card-content {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            text-align: center;
+        }
+        .terms {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+        .term-tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* Timer styles */
+        .timer-container {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .timer-display {
+            font-size: 4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+        .timer-display.warning {
+            background: linear-gradient(135deg, #ff9a3c 0%, #ff6b6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .timer-controls {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        .timer-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .timer-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        
+        /* Quiz styles */
+        .quiz-container { max-width: 800px; margin: 0 auto; }
+        .quiz-question {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            font-size: 1.3rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .quiz-option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 3px solid rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            margin-bottom: 0.5rem;
+        }
+        .quiz-option:hover:not(.correct):not(.incorrect) { 
+            background: rgba(255, 255, 255, 0.1); 
+            border-color: rgba(168, 237, 234, 0.5);
+            transform: translateX(8px); 
+        }
+        .quiz-option.selected { 
+            border-color: #a8edea; 
+            background: rgba(168, 237, 234, 0.15); 
+        }
+        .quiz-option.correct { 
+            border-color: #10b981; 
+            background: rgba(16, 185, 129, 0.3);
+            font-weight: 500;
+            border-width: 3px;
+        }
+        .quiz-option.incorrect { 
+            border-color: #ef4444; 
+            background: rgba(239, 68, 68, 0.3);
+            font-weight: 500;
+            border-width: 3px;
+        }
+        
+        .result-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+        .result-box h3 { font-size: 2rem; margin-bottom: 1rem; }
+        .score-big {
+            font-size: 4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h2 { font-size: 1.8rem; }
+            .games-grid { grid-template-columns: 1fr; }
+            .card-content { font-size: 1.1rem; }
+            .timer-display { font-size: 3rem; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script>
+        const gmmData = {
+          gmm1: [
+            { 
+              q: "Explain drivers for the globalization of markets.",
+              a: "Key drivers include the saturation of domestic markets in industrialized nations, which forces firms to look for overseas opportunities, and intensifying global competition fueled by the proliferation of digital search and purchase channels. Additionally, many complex products (like airplanes or iPhones) require global cooperation as a necessary precondition for their development and assembly.",
+              terms: ["Domestic saturation", "Global competition", "Global cooperation needed"]
+            },
+            { 
+              q: "What is the glocalization approach? Which two extremes does this approach unite?",
+              a: "This is the 'GLOCAL' (Global + Local) framework. It unites two extremes: Globalization (Standardization): Focusing on 100% efficient use of resources, low-cost production, and high-speed global rollouts. Localization (Differentiation): Focusing on 100% effectiveness in reaching target groups by being culturally close to consumers and flexible to local needs.",
+              terms: ["Global + Local", "Standardization vs Differentiation", "Efficiency vs Effectiveness"]
+            },
+            { 
+              q: "What are cultural stereotypes and how does the self-reference criterion relate to this?",
+              a: "Stereotypes are perceptions people attach to other nationalities and the products coming from those countries. SRC is the unconscious tendency for individuals to resort to their own cultural experiences and values to interpret a business situation. Impact on Marketers: These biases can act as barriers to internationalization. If marketers fail to become sensitive to these biases, culture becomes a source of conflict or 'disaster' rather than synergy. Success requires moving through stages from ignorance to adaptation.",
+              terms: ["Perceptions of nationalities", "SRC: Self-reference criterion", "Interpretation barriers"]
+            },
+            { 
+              q: "Be able to attribute certain characteristics to the three communication types (linear-active, reactive, multi-active) of the Lewis model of communication types.",
+              a: "Linear-active: Prioritizes planning and efficiency; talks half the time; does one thing at a time; uses logic and facts; values truth before diplomacy. Multi-active: Focuses on relationships; talks most of the time; multitasks; emotional; interweaves social and professional lives; values feelings before facts. Reactive: Emphasizes harmony and respect; listens most of the time; reacts to partners; never confronts; values diplomacy over truth; connects social and professional. Negotiation Conflicts: Conflicts often arise from differing priorities, such as a linear-active negotiator's insistence on 'facts and logic' clashing with a multi-active negotiator's 'feeling-based' approach. Solutions: Marketers must study these differences to reach the stage of adaptation, where they respect the other type's communication style.",
+              terms: ["Linear: Logic & planning", "Multi: Emotional & relationships", "Reactive: Harmony & listening"]
+            },
+            { 
+              q: "What is the 'value chain'?",
+              a: "The value chain is a model representing the internal functions of a firm, categorized into upstream activities (R&D and Production) and downstream activities (Marketing, Sales, and Services).",
+              terms: ["Upstream: R&D + Production", "Downstream: Marketing + Sales", "Internal functions"]
+            },
+            { 
+              q: "Explain the main advantages of centralizing upstream and decentralizing downstream activities.",
+              a: "Centralizing Upstream: Provides advantages in economies of scale and cost-efficient global rollout of concepts. Decentralizing Downstream: Allows a firm to be culturally close to the consumer, leveraging local market knowledge and flexibility to meet specific regional needs.",
+              terms: ["Central upstream: Economies of scale", "Decentral downstream: Cultural proximity", "Efficiency vs Flexibility"]
+            }
+          ],
+          gmm2: [
+            { 
+              q: "Be able to explain and identify which of Porter's models help to identify competitive advantage on a macro-, meso-, and micro-level.",
+              a: "Macro-level: Porter's Diamond (analyzing national competitiveness and ideal manufacturing locations). Meso-level: Porter's Five Forces (analyzing industry-level attractiveness and market dynamics). Micro-level: Value Chain Analysis and the Competitive Triangle (analyzing firm-level strategy and benchmarking against specific competitors).",
+              terms: ["Macro: Diamond", "Meso: Five Forces", "Micro: Competitive Triangle"]
+            },
+            { 
+              q: "Which elements does Porter's Five Forces Model consist of? Define and explain in short sentences.",
+              a: "1. Bargaining Power of Buyers: Determined by the number of buyers, their price sensitivity, and switching costs. 2. Threat of Substitutes: Determined by the number of available alternatives and the buyer's propensity to switch. 3. Bargaining Power of Suppliers: Influenced by the number and size of suppliers and the uniqueness of their service. 4. Threat of New Entrants: Driven by entry barriers such as economies of scale, capital requirements, and brand loyalty. 5. Rivalry Among Existing Competitors: Determined by the number of competitors, industry concentration, and quality differences.",
+              terms: ["Buyers", "Substitutes", "Suppliers", "New entrants", "Rivalry"]
+            },
+            { 
+              q: "Explain three factors that increase the bargaining power of suppliers.",
+              a: "Three key factors include a low number of suppliers, the large size of suppliers, and the uniqueness of the service they provide.",
+              terms: ["Few suppliers", "Large size", "Unique service"]
+            },
+            { 
+              q: "Which sources of competitive advantage did Porter identify?",
+              a: "Porter identified two primary sources: Differentiation (uniqueness perceived by the customer) and Overall Cost Leadership (a low-cost position).",
+              terms: ["Differentiation", "Cost leadership", "Two primary sources"]
+            },
+            { 
+              q: "What is the competitive triangle?",
+              a: "This model consists of the Customer, the Company, and the Competitor. It illustrates that a competitive advantage is the benefit a company offers that its competitors cannot.",
+              terms: ["Customer-Company-Competitor", "Unique benefit", "Vs competition"]
+            },
+            { 
+              q: "Explain a cost-based competitive advantage and discuss the differences to a customer-based competitive advantage.",
+              a: "Cost-based: A superiority where an organization provides the same value as competitors but at a lower price. Customer-based: A superiority where an organization charges higher prices by providing greater value through differentiation.",
+              terms: ["Cost: Same value, lower price", "Customer: Greater value, premium", "Efficiency vs Differentiation"]
+            },
+            { 
+              q: "Which criteria have to be met so that a company can claim to have a customer-based competitive advantage?",
+              a: "To claim this advantage, a company must be better than the competition and the advantage must be valued by the customer, serving as a key success factor in that specific industry.",
+              terms: ["Better than competition", "Valued by customer", "Key success factor"]
+            },
+            { 
+              q: "Why do companies conduct competitive benchmarking?",
+              a: "Companies conduct this to evaluate their performance against industry rivals, helping them identify strengths and weaknesses, uncover areas for improvement, and enhance their market position.",
+              terms: ["Evaluate vs rivals", "Identify strengths/weaknesses", "Improve position"]
+            },
+            { 
+              q: "What is a SWOT analysis? Where does the information synthesized in a SWOT analysis stem from?",
+              a: "A synthesis of internal and external analyses to guide strategic decisions. Internal (Strengths/Weaknesses): These ALWAYS stem from inside the company relative to competition (e.g., core competencies or cost drivers identified via Value Chain Analysis). External (Opportunities/Threats): These are ALWAYS caused by the external environment, such as changing buyer preferences, government regulations, or competitor actions (identified via PEST or Porter's Five Forces).",
+              terms: ["S/W: Internal vs competition", "O/T: External market", "Value Chain + PEST + Five Forces"]
+            }
+          ],
+          gmm3: [
+            { 
+              q: "Why is screening of foreign markets important?",
+              a: "Identifying the 'right' market is critical because it directly influences a firm's likelihood of success, shapes the nature of the specific marketing programs required, and impacts the firm's ability to coordinate global operations.",
+              terms: ["Right market", "Success likelihood", "Programs needed", "Global coordination"]
+            },
+            { 
+              q: "Explain the IMS process ('roadmap') with the necessary steps of analysis.",
+              a: "The International Market Selection (IMS) roadmap follows a four-step sequence: Preliminary Screening: Evaluating country attractiveness using macro-criteria like PEST analysis or the BERI-Index. Fine-Grained Screening: Assessing specific market potential using Porter's Five Forces or detailed market size calculations. Competitive Strength Assessment: Analyzing the firm's specific chances of success based on its unique offerings and benchmarking. Market Categorization: Selecting target markets and clustering them for segmentation.",
+              terms: ["1. Preliminary: PEST", "2. Fine-grained: Five Forces", "3. Competitive strength", "4. Categorization"]
+            },
+            { 
+              q: "Know what the TAM SAM SOM approach is and be able to do logic derivations for criteria to narrow down the TAM for a specific product case study.",
+              a: "This approach narrows down market potential: TAM (Total Addressable Market): The total revenue available if a firm captured 100% of a market, assuming no competition. SAM (Serviceable Available Market): The portion of the TAM the company can actually serve based on geographical or distribution constraints. SOM (Serviceable Obtainable Market): The realistic portion of the SAM the company can achieve in the first few years, accounting for competition.",
+              terms: ["TAM: Total no competition", "SAM: Serviceable with constraints", "SOM: Realistic with competition"]
+            },
+            { 
+              q: "Develop in-depth knowledge on how to create a MACS Matrix (Market Attractiveness – Competitive Strength) and apply it effectively to analyze and compare market entry options.",
+              a: "This matrix plots Market Attractiveness against Competitive Strength to prioritize countries into three categories: A Countries: Primary markets for high investment and growth. B Countries: Secondary markets requiring selective strategies due to higher risk. C Countries: Tertiary markets where harvesting or divesting is recommended.",
+              terms: ["Attractiveness vs Strength", "A: High investment", "B: Selective", "C: Harvest/Divest"]
+            },
+            { 
+              q: "State and explain two company-related factors that favor country diversification.",
+              a: "Two internal factors favoring country diversification include high management risk consciousness (spreading risk across many markets) and the objective of achieving growth through market development.",
+              terms: ["Risk consciousness", "Growth objective", "Risk dispersion"]
+            }
+          ],
+          gmm4: [
+            { 
+              q: "Be prepared to identify, explain and apply which factors increase or decrease the tendency for choosing a hierarchical internationalization mode.",
+              a: "The tendency to choose a hierarchical (high-control/high-investment) mode increases with firm size, higher international experience, and high product complexity. Conversely, it decreases when management is risk-averse or requires high flexibility.",
+              terms: ["Increase: Size, experience, complexity", "Decrease: Risk aversion, flexibility", "Control vs Risk"]
+            },
+            { 
+              q: "Explain which steps of the value chain are concerned by which internationalization mode.",
+              a: "Export Modes: Typically involve keeping R&D, Production, and Marketing in the home country, with only Sales and Services occurring in the foreign market. Licensing/Franchising: The licensor/franchisor keeps R&D but transfers Production, Marketing, and Sales to the local partner. Hierarchical Modes: The firm internalizes the entire value chain (R&D, Production, Marketing, and Sales) within its own global subsidiaries.",
+              terms: ["Export: Only sales abroad", "Licensing: R&D at home", "Hierarchical: All internalized"]
+            }
+          ],
+          gmm5: [
+            { 
+              q: "Explain what a purchase funnel is. Be prepared to fill in the different stages of a purchase funnel.",
+              a: "The stages move from Awareness → Interest → Consideration → Intent → Evaluation → Purchase → Loyalty → Advocacy.",
+              terms: ["Awareness", "Consideration", "Purchase", "Loyalty", "Advocacy"]
+            },
+            { 
+              q: "What are the four elements of the marketing mix?",
+              a: "The four elements of the marketing mix are Product, Price, Place (Distribution), and Promotion (Communication).",
+              terms: ["Product", "Price", "Place", "Promotion"]
+            },
+            { 
+              q: "Explain three arguments for a standardization of the global marketing mix and three barriers to standardization.",
+              a: "Arguments for Standardization: Economies of scale, high-speed global roll-outs, and reduced complexity. Barriers: Legal restrictions, communication infrastructure differences, and varying consumer literacy levels.",
+              terms: ["Pro: Economies, speed, simplicity", "Contra: Legal, infrastructure, literacy"]
+            },
+            { 
+              q: "What advantages can a company derive from marketing a branded versus a non-branded product?",
+              a: "Branded products allow a company to differentiate from competitors, create brand awareness, and provide a quality guarantee that builds consumer trust.",
+              terms: ["Differentiation", "Awareness", "Quality guarantee", "Trust"]
+            },
+            { 
+              q: "What is the importance of 'country of origin' in international product marketing? Discuss whilst integrating specific examples.",
+              a: "CoO acts as a 'halo' effect where consumers use the production location as a cue for quality. For example, German automobiles are often associated with quality leadership, allowing for price premiums.",
+              terms: ["Halo effect", "Quality signal", "Premium by origin"]
+            },
+            { 
+              q: "Name three contingency factors that impact country-of-origin effects (be specific: e.g., how does age impact country of origin effects?).",
+              a: "Factors include Age (older consumers are often less favorable toward foreign products), Gender (women may show higher bias against foreign products), and Education (higher education is linked to more favorable evaluations of foreign goods).",
+              terms: ["Age: Older more bias", "Gender: Women more bias", "Education: More favorable"]
+            },
+            { 
+              q: "What is meant by the term 'dual adoption'?",
+              a: "This refers to an international strategy where a company adapts both its product features and its communication/promotion to suit the local market.",
+              terms: ["Adapt product", "Adapt communication", "Double local adaptation"]
+            },
+            { 
+              q: "What are symbolic attributes of brands? Why might it be important to adopt symbolic attributes? Be prepared to explain by an example.",
+              a: "These are attributes related to the meaning conveyed by a brand's image or heritage. Adopting them is important to correct an unfavorable foreign image or to capitalize on an exotic appeal; for example, Marlboro uses its symbolic 'American' image to standardize globally.",
+              terms: ["Meaning/image brand", "Correct image", "Capitalize exoticism"]
+            }
+          ],
+          gmm6: [
+            { 
+              q: "Explain four factors that favor price standardization.",
+              a: "Factors favoring standardization include the internationalization of competition, the presence of large global retail organizations, and the need to prevent cross-border arbitrage.",
+              terms: ["International competition", "Global retailers", "Prevent arbitrage", "Brand consistency"]
+            },
+            { 
+              q: "What is meant by the term 'export price'-escalation? Please explain one counter-strategy.",
+              a: "This is the summation of all cost factors—such as shipping, insurance, tariffs, and intermediary margins—that make a product significantly more expensive in a foreign market than at home. A common counter-strategy is establishing local production to bypass tariffs and shipping costs.",
+              terms: ["Sum of export costs", "Product more expensive abroad", "Solution: Local production"]
+            },
+            { 
+              q: "Explain the concept of dynamic pricing with an example. How can AI support dynamic pricing strategies?",
+              a: "This involves adjusting prices in real-time based on variables like demand and supply. AI supports this by aggregating data points (competitor prices, conversion rates) to predict the optimal price for specific customer micro-segments.",
+              terms: ["Real-time prices", "Supply/demand", "AI: Optimal prediction per segment"]
+            },
+            { 
+              q: "Be prepared to calculate the surplus a company has to sell when decreasing prices. Example: A manufacturer sells his product at 100 € and has variable costs of 80 € (hence: a contribution of 20 € per piece sold). For 100 units sold he thus earns 2.000 €. He decides to decrease his price to 95 €. If costs remain the same, how much more does he have to sell to still earn 2.000 €?",
+              a: "Original Profit: 100 units × 20€ contribution = 2,000€ profit. New Contribution: 95€ price - 80€ cost = 15€ per unit. Required Sales: 2,000€ ÷ 15€ = 133.33 units. The manufacturer must sell approx. 34 more units to maintain the same profit.",
+              terms: ["Original contribution: €20", "New contribution: €15", "Need 133 units (+34)"]
+            }
+          ],
+          gmm7: [
+            { 
+              q: "Define 'noise' in the context of marketing communication and provide an example.",
+              a: "In marketing, noise is any interference that prevents the receiver from correctly decoding a message, such as competitor communications or external distractions.",
+              terms: ["Message interference", "Prevents decoding", "Competition, distractions"]
+            },
+            { 
+              q: "Explain why cultural sensitivity is important in global advertising (please refer to the Toyota Camry example for phrasing your answers).",
+              a: "It is essential to avoid offensive translations and to align with local values. For example, Toyota created different Camry ads for various ethnic groups (Asian, Latin, African American) to appeal to their unique cultural motives while keeping the overall theme of 'sensations'.",
+              terms: ["Avoid offenses", "Local values alignment", "Ethnic adaptation"]
+            },
+            { 
+              q: "Describe two reasons why social media is considered a critical channel for international advertisers.",
+              a: "It is a critical channel because it reaches 3.6 billion active users globally and offers high engagement, with users spending an average of 143 minutes per day on these platforms.",
+              terms: ["3.6B global users", "143 min/day engagement", "Massive reach"]
+            },
+            { 
+              q: "Why is 'content' so important in digital marketing? Refer to the pivotal role of 'content' in the 6-C-Model).",
+              a: "In the 6-C model, content is the pivotal link between the company and the community. It is vital because companies lose control once content is pushed; high-quality, relevant content is necessary to trigger positive online word-of-mouth.",
+              terms: ["Company-community link", "Loss of control", "Trigger positive WOM"]
+            },
+            { 
+              q: "Discuss the importance of mapping the customer journey for designing successful marketing communication. Evaluate the potential impact of using push notifications for customer retention based on the data provided in the session.",
+              a: "Mapping the journey helps marketers provide the right message at the right touchpoint. Data shows that using push notifications for customer retention can reduce the 90-day churn rate of an app from 95% down to 80%. Personalization improves outcomes by ensuring messaging is relevant to the individual's 'social identity,' thereby building long-term engagement.",
+              terms: ["Right message at touchpoint", "Churn 95%→80%", "Personalization: social identity"]
+            }
+          ]
+        };
+
+        let allQuestions = [];
+        Object.keys(gmmData).forEach(module => {
+            gmmData[module].forEach(q => {
+                allQuestions.push({ ...q, module: module.toUpperCase() });
+            });
+        });
+
+        let state = {
+            view: 'home',
+            game: null,
+            index: 0,
+            flipped: false,
+            score: 0,
+            answers: [],
+            showAnswer: false,
+            timerSeconds: 10,
+            timeLeft: 10,
+            timerInterval: null,
+            quizOptions: [] // Store options for each question
+        };
+
+        function shuffle(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function startTimer() {
+            stopTimer();
+            state.timeLeft = state.timerSeconds;
+            state.timerInterval = setInterval(() => {
+                state.timeLeft--;
+                if (state.timeLeft <= 0) {
+                    stopTimer();
+                    state.showAnswer = true;
+                }
+                render();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (state.timerInterval) {
+                clearInterval(state.timerInterval);
+                state.timerInterval = null;
+            }
+        }
+
+        function setTimer(seconds) {
+            stopTimer();
+            state.timerSeconds = seconds;
+            state.timeLeft = seconds;
+            render();
+        }
+
+        function render() {
+            const root = document.getElementById('root');
+            
+            if (state.view === 'home') {
+                root.innerHTML = `
+                    <div class="app">
+                        <header class="header">
+                            <div class="logo"><h1>📚 GMM Study Games</h1></div>
+                        </header>
+                        <main class="main">
+                            <div class="container">
+                                <div class="hero">
+                                    <h2>Prepare for your Global Marketing Exam</h2>
+                                    <p>Choose a study mode and master all concepts</p>
+                                </div>
+                                
+                                <div class="games-grid">
+                                    <div class="game-card" onclick="startGame('flashcards-terms')">
+                                        <div class="game-icon">🎴</div>
+                                        <h3>Flashcards: Terms</h3>
+                                        <p>Study with key terms</p>
+                                    </div>
+                                    <div class="game-card" onclick="startGame('flashcards-full')">
+                                        <div class="game-icon">📝</div>
+                                        <h3>Flashcards: Full</h3>
+                                        <p>Q&A with complete answers</p>
+                                    </div>
+                                    <div class="game-card" onclick="startGame('quiz')">
+                                        <div class="game-icon">🎯</div>
+                                        <h3>Quiz</h3>
+                                        <p>Test your knowledge</p>
+                                    </div>
+                                    <div class="game-card" onclick="startGame('verbal')">
+                                        <div class="game-icon">🎤</div>
+                                        <h3>Verbal Practice</h3>
+                                        <p>Answer with timer</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="stats">
+                                    <div class="stat-card">
+                                        <div class="stat-number">${allQuestions.length}</div>
+                                        <div class="stat-label">Total Questions</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-number">7</div>
+                                        <div class="stat-label">GMM Modules</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-number">4</div>
+                                        <div class="stat-label">Game Modes</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </main>
+                    </div>
+                `;
+            } else if (state.view === 'flashcards-terms') {
+                renderFlashcardsTerms();
+            } else if (state.view === 'flashcards-full') {
+                renderFlashcardsFull();
+            } else if (state.view === 'quiz') {
+                renderQuiz();
+            } else if (state.view === 'verbal') {
+                renderVerbal();
+            }
+        }
+
+        function startGame(game) {
+            state.view = game;
+            state.game = game;
+            state.index = 0;
+            state.flipped = false;
+            state.score = 0;
+            state.answers = [];
+            state.showAnswer = false;
+            stopTimer();
+            if (game === 'quiz') {
+                state.quizQuestions = shuffle(allQuestions).slice(0, 10);
+                // Pre-generate options for each question
+                state.quizOptions = state.quizQuestions.map(q => {
+                    const wrongAnswers = shuffle(allQuestions.filter(x => x.a !== q.a))
+                        .slice(0, 3)
+                        .map(x => x.a);
+                    return shuffle([q.a, ...wrongAnswers]);
+                });
+            }
+            render();
+        }
+
+        function goHome() {
+            stopTimer();
+            state.view = 'home';
+            render();
+        }
+
+        function renderFlashcardsTerms() {
+            const q = allQuestions[state.index];
+            const progress = ((state.index + 1) / allQuestions.length) * 100;
+            
+            const root = document.getElementById('root');
+            root.innerHTML = `
+                <div class="app">
+                    <header class="header">
+                        <div class="logo"><h1>🎴 Flashcards: Key Terms</h1></div>
+                    </header>
+                    <main class="main">
+                        <div class="flashcard-view">
+                            <button class="back-btn" onclick="goHome()">← Back to Menu</button>
+                            
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progress}%"></div>
+                            </div>
+                            
+                            <div class="card-counter">${state.index + 1} / ${allQuestions.length}</div>
+                            <div class="module-badge">${q.module}</div>
+                            
+                            <div class="flashcard-container" onclick="flipCard()">
+                                <div class="flashcard ${state.flipped ? 'flipped' : ''}">
+                                    <div class="card-front">
+                                        <div class="card-label">QUESTION</div>
+                                        <div class="card-content">${q.q}</div>
+                                        <p style="position: absolute; bottom: 2rem; opacity: 0.5; font-size: 0.9rem;">
+                                            Click to see key terms
+                                        </p>
+                                    </div>
+                                    <div class="card-back">
+                                        <div class="card-label">KEY TERMS</div>
+                                        <div class="terms">
+                                            ${q.terms.map(t => `<span class="term-tag">${t}</span>`).join('')}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="controls">
+                                <button class="btn" onclick="prevCard()">← Previous</button>
+                                <button class="btn btn-primary" onclick="nextCard()">Next →</button>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            `;
+        }
+
+        function renderFlashcardsFull() {
+            const q = allQuestions[state.index];
+            const progress = ((state.index + 1) / allQuestions.length) * 100;
+            
+            const root = document.getElementById('root');
+            root.innerHTML = `
+                <div class="app">
+                    <header class="header">
+                        <div class="logo"><h1>📝 Flashcards: Full Answers</h1></div>
+                    </header>
+                    <main class="main">
+                        <div class="flashcard-view">
+                            <button class="back-btn" onclick="goHome()">← Back to Menu</button>
+                            
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progress}%"></div>
+                            </div>
+                            
+                            <div class="card-counter">${state.index + 1} / ${allQuestions.length}</div>
+                            <div class="module-badge">${q.module}</div>
+                            
+                            <div class="flashcard-container" onclick="flipCard()">
+                                <div class="flashcard ${state.flipped ? 'flipped' : ''}">
+                                    <div class="card-front">
+                                        <div class="card-label">QUESTION</div>
+                                        <div class="card-content">${q.q}</div>
+                                        <p style="position: absolute; bottom: 2rem; opacity: 0.5; font-size: 0.9rem;">
+                                            Click to see full answer
+                                        </p>
+                                    </div>
+                                    <div class="card-back">
+                                        <div class="card-label">ANSWER</div>
+                                        <div class="card-content" style="font-size: 1.05rem;">${q.a}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="controls">
+                                <button class="btn" onclick="prevCard()">← Previous</button>
+                                <button class="btn btn-primary" onclick="nextCard()">Next →</button>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            `;
+        }
+
+        function renderQuiz() {
+            if (state.index >= state.quizQuestions.length) {
+                renderQuizResults();
+                return;
+            }
+            
+            const q = state.quizQuestions[state.index];
+            const options = state.quizOptions[state.index]; // Use pre-generated options
+            const letters = ['A', 'B', 'C', 'D'];
+            
+            const root = document.getElementById('root');
+            root.innerHTML = `
+                <div class="app">
+                    <header class="header">
+                        <div class="logo"><h1>🎯 Quiz Mode</h1></div>
+                    </header>
+                    <main class="main">
+                        <div class="quiz-container">
+                            <button class="back-btn" onclick="goHome()">← Back to Menu</button>
+                            
+                            <div class="card-counter">Question ${state.index + 1} / ${state.quizQuestions.length}</div>
+                            <div class="card-counter">Score: ${state.score}</div>
+                            <div class="module-badge">${q.module}</div>
+                            
+                            <div class="quiz-question">${q.q}</div>
+                            
+                            <div class="quiz-options">
+                                ${options.map((opt, i) => {
+                                    let optionClass = '';
+                                    let statusLabel = '';
+                                    
+                                    if (state.showAnswer) {
+                                        if (opt === q.a) {
+                                            optionClass = 'correct';
+                                            statusLabel = '✓ CORRECT';
+                                        } else if (state.answers[state.index] === opt) {
+                                            optionClass = 'incorrect';
+                                            statusLabel = '✗ INCORRECT - YOUR ANSWER';
+                                        }
+                                    } else if (state.answers[state.index] === opt) {
+                                        optionClass = 'selected';
+                                    }
+                                    
+                                    return `
+                                        <div class="quiz-option ${optionClass}" 
+                                             onclick="${state.showAnswer ? '' : `selectAnswer(\`${opt.replace(/`/g, '\\`')}\`, \`${q.a.replace(/`/g, '\\`')}\`)`}">
+                                            <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                                                <div style="font-weight: 700; font-size: 1.2rem; flex-shrink: 0; opacity: 0.8;">${letters[i]}.</div>
+                                                <div style="flex: 1;">
+                                                    ${statusLabel ? `<div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem; opacity: 1;">${statusLabel}</div>` : ''}
+                                                    ${opt}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                            
+                            ${state.showAnswer ? `
+                                <div style="text-align: center; margin-top: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.05); border-radius: 12px;">
+                                    <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">
+                                        ${state.answers[state.index] === q.a ? '✅ CORRECT!' : '❌ INCORRECT'}
+                                    </div>
+                                    ${state.answers[state.index] !== q.a ? `
+                                        <div style="font-size: 1rem; opacity: 0.8; margin-top: 0.5rem;">
+                                            The correct answer is highlighted in green above
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                <div class="controls">
+                                    <button class="btn btn-primary" onclick="nextQuiz()">Next Question →</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </main>
+                </div>
+            `;
+        }
+
+        function renderQuizResults() {
+            const root = document.getElementById('root');
+            const percentage = Math.round((state.score / state.quizQuestions.length) * 100);
+            const isPerfect = state.score === state.quizQuestions.length;
+            
+            root.innerHTML = `
+                <div class="app">
+                    <header class="header">
+                        <div class="logo"><h1>🎯 Quiz Results</h1></div>
+                    </header>
+                    <main class="main">
+                        <div class="quiz-container">
+                            <div class="result-box">
+                                ${isPerfect ? `
+                                    <div style="font-size: 5rem; margin-bottom: 1rem;">🎉💖✨</div>
+                                    <h3 style="font-size: 2.5rem; background: linear-gradient(135deg, #ff6b6b 0%, #f093fb 50%, #f5576c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1.5rem;">
+                                        ¡FELICIDADES MI AMOR!
+                                    </h3>
+                                    <p style="font-size: 1.8rem; margin: 1rem 0; font-weight: 700;">TE AMO MUCHOOOOO CULONA 💕</p>
+                                    <div style="font-size: 4rem; margin: 1rem 0;">👑</div>
+                                ` : `
+                                    <h3>Quiz Complete!</h3>
+                                `}
+                                <div class="score-big">${state.score}/${state.quizQuestions.length}</div>
+                                <p style="font-size: 1.5rem; margin: 1rem 0;">${percentage}%</p>
+                                ${isPerfect ? `
+                                    <p style="font-size: 1.2rem; opacity: 0.9; margin-top: 1rem;">Perfect score! You're amazing! 🌟</p>
+                                ` : ''}
+                                <button class="btn btn-primary" onclick="startGame('quiz')" style="margin-top: 2rem;">Try Again</button>
+                                <button class="btn" onclick="goHome()" style="margin-top: 1rem;">Back to Menu</button>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            `;
+        }
+
+        function renderVerbal() {
+            const q = allQuestions[state.index];
+            const progress = ((state.index + 1) / allQuestions.length) * 100;
+            
+            const root = document.getElementById('root');
+            root.innerHTML = `
+                <div class="app">
+                    <header class="header">
+                        <div class="logo"><h1>🎤 Verbal Practice</h1></div>
+                    </header>
+                    <main class="main">
+                        <div class="flashcard-view">
+                            <button class="back-btn" onclick="goHome()">← Back to Menu</button>
+                            
+                            <p style="text-align: center; opacity: 0.8; margin-bottom: 1rem;">Read the question out loud and answer before time runs out!</p>
+                            
+                            <div class="timer-container">
+                                <div class="timer-display ${state.timeLeft <= 3 ? 'warning' : ''}">${state.timeLeft}s</div>
+                                <div class="timer-controls">
+                                    <span style="opacity: 0.7; margin-right: 0.5rem;">Timer:</span>
+                                    ${[5, 10, 15, 20, 30].map(s => `
+                                        <button class="timer-btn ${state.timerSeconds === s ? 'active' : ''}" onclick="setTimer(${s})">${s}s</button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progress}%"></div>
+                            </div>
+                            
+                            <div class="card-counter">${state.index + 1} / ${allQuestions.length}</div>
+                            <div class="module-badge">${q.module}</div>
+                            
+                            <div class="quiz-question">${q.q}</div>
+                            
+                            ${!state.showAnswer ? `
+                                <div class="controls">
+                                    <button class="btn btn-primary" onclick="startTimer()">Start Timer</button>
+                                    <button class="btn" onclick="toggleVerbalAnswer()">Show Answer Now</button>
+                                </div>
+                            ` : `
+                                <div style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 2rem; margin: 2rem 0;">
+                                    <div class="card-label">KEY TERMS FOR YOUR ANSWER</div>
+                                    <div class="terms">
+                                        ${q.terms.map(t => `<span class="term-tag">${t}</span>`).join('')}
+                                    </div>
+                                </div>
+                                <div class="controls">
+                                    <button class="btn" onclick="prevVerbal()">← Previous</button>
+                                    <button class="btn btn-primary" onclick="nextVerbal()">Next →</button>
+                                </div>
+                            `}
+                        </div>
+                    </main>
+                </div>
+            `;
+        }
+
+        function flipCard() {
+            state.flipped = !state.flipped;
+            render();
+        }
+
+        function nextCard() {
+            state.index = (state.index + 1) % allQuestions.length;
+            state.flipped = false;
+            render();
+        }
+
+        function prevCard() {
+            state.index = (state.index - 1 + allQuestions.length) % allQuestions.length;
+            state.flipped = false;
+            render();
+        }
+
+        function selectAnswer(selected, correct) {
+            state.answers[state.index] = selected;
+            if (selected === correct) {
+                state.score++;
+            }
+            state.showAnswer = true;
+            render();
+        }
+
+        function nextQuiz() {
+            state.index++;
+            state.showAnswer = false;
+            render();
+        }
+
+        function toggleVerbalAnswer() {
+            stopTimer();
+            state.showAnswer = true;
+            render();
+        }
+
+        function nextVerbal() {
+            state.index = (state.index + 1) % allQuestions.length;
+            state.showAnswer = false;
+            stopTimer();
+            state.timeLeft = state.timerSeconds;
+            render();
+        }
+
+        function prevVerbal() {
+            state.index = (state.index - 1 + allQuestions.length) % allQuestions.length;
+            state.showAnswer = false;
+            stopTimer();
+            state.timeLeft = state.timerSeconds;
+            render();
+        }
+
+        render();
+    </script>
+</body>
+</html>
