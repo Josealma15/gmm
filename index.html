@@ -704,7 +704,7 @@
             state.showAnswer = false;
             stopTimer();
             if (game === 'quiz') {
-                state.quizQuestions = shuffle(allQuestions).slice(0, 10);
+                state.quizQuestions = shuffle(allQuestions);
                 // Pre-generate options for each question
                 state.quizOptions = state.quizQuestions.map(q => {
                     const wrongAnswers = shuffle(allQuestions.filter(x => x.a !== q.a))
